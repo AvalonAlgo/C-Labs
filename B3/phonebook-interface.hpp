@@ -11,13 +11,13 @@ class PhonebookUI
 public:
     PhonebookUI();
 
-    void add(const Phonebook::contact_t& contact);
+    void add(const Phonebook::contact_t& contact, std::ostream&);
     void store(const std::string& markName, const std::string& newMarkName, std::ostream& out);
     void insert(const std::string& markName, const std::string& order,const Phonebook::contact_t& contact, std::ostream& out);
     void deleteContact(const std::string& markName, std::ostream& out);
     void show(const std::string& markName, std::ostream& out) const;
-    void move(const std::string& markName, int steps, std::ostream& out);
-    void move(const std::string& markName, const std::string& place, std::ostream& out);
+    void moveBySteps(const std::string& markName, int steps, std::ostream& out);
+    void moveByPlace(const std::string& markName, const std::string& place, std::ostream& out);
 
 private:
     Phonebook book_;

@@ -8,7 +8,7 @@
 class Phonebook
 {
 public:
-    using contact_t = std::pair<std::string /*name*/, std::string /*number*/>;
+    using contact_t = std::pair<std::string, std::string>;
     using contactIter = std::list<contact_t>::iterator;
     using constContactIter = std::list<contact_t>::const_iterator;
 

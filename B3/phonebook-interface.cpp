@@ -4,7 +4,17 @@ PhonebookUI::PhonebookUI() :
   marks_({{"current", book_.end()}})
 {}
 
-void PhonebookUI::add(const Phonebook::contact_t& contact)
+void printInvalidBookmark(std::ostream &out)
+{
+  out << "<INVALID BOOKMARK>\n";
+}
+
+void printEmpty(std::ostream &out)
+{
+  out << "<EMPTY>\n";
+}
+
+void PhonebookUI::add(const Phonebook::contact_t& contact, std::ostream&)
 {
   if (book_.isEmpty())
   {
@@ -25,29 +35,30 @@ void PhonebookUI::store(const std::string& markName, const std::string& newMarkN
   auto it = marks_.find(markName);
   if (it == marks_.end())
   {
-    out << "<INVALID BOOKMARK>";
+    printInvalidBookmark(out);
     return;
   }
   if (book_.isEmpty())
   {
-    out << "<EMPTY>";
+    printEmpty(out);
     return;
   }
   marks_[newMarkName] = it->second;
 }
 
 void PhonebookUI::insert(const std::string& markName, const std::string& order,
-  const Phonebook::contact_t& contact, std::ostream& out)
+    const Phonebook::contact_t& contact, std::ostream& out)
 {
-  auto it = marks_.find(markName);
-  if (it == marks_.end())
-  {
-    out << "<INVALID BOOKMARK>\n";
-    return;
-  }
   if (book_.isEmpty())
   {
     book_.add(contact);
+    return;
+  }
+
+  auto it = marks_.find(markName);
+  if (it == marks_.end())
+  {
+    printInvalidBookmark(out);
     return;
   }
 
@@ -66,12 +77,12 @@ void PhonebookUI::deleteContact(const std::string& markName, std::ostream& out)
   auto it = marks_.find(markName);
   if (it == marks_.end())
   {
-    out << "<INVALID BOOKMARK>\n";
+    printInvalidBookmark(out);
     return;
   }
   if (book_.isEmpty())
   {
-    out << "<EMPTY>\n";
+    printEmpty(out);
     return;
   }
   auto temp = marks_[markName];
@@ -99,34 +110,36 @@ void PhonebookUI::show(const std::string& markName, std::ostream& out) const
   auto it = marks_.find(markName);
   if (it == marks_.end())
   {
-    out << "<INVALID BOOKMARK>\n";
+    printInvalidBookmark(out);
     return;
   }
   if (book_.isEmpty())
   {
-    out << "<EMPTY>\n";
+    printEmpty(out);
     return;
   }
   out << it->second->second << " " << it->second->first << "\n";
 }
 
-void PhonebookUI::move(const std::string& markName, int steps, std::ostream& out)
+void PhonebookUI::moveBySteps(const std::string& markName, int steps, std::ostream& out)
 {
   auto it = marks_.find(markName);
   if (it == marks_.end())
   {
-    out << "<INVALID BOOKMARK>\n";
+    printInvalidBookmark(out);
+    return;
   }
   else if (book_.isEmpty())
   {
-    out << "<EMPTY>\n";
+    printEmpty(out);
+    return;
   }
 
-  if (steps > 0 && steps > std::distance(it->second, book_.end()) - 1)
+  if ((steps > 0) && (steps > std::distance(it->second, book_.end()) - 1))
   {
     it->second = std::prev(book_.end());
   }
-  else if (steps < 0 && (-steps) > std::distance(book_.begin(), it->second))
+  else if ((steps < 0) && ((-steps) > std::distance(book_.begin(), it->second)))
   {
     it->second = book_.begin();
   }
@@ -134,16 +147,16 @@ void PhonebookUI::move(const std::string& markName, int steps, std::ostream& out
   std::advance(it->second, steps);
 }
 
-void PhonebookUI::move(const std::string &markName, const std::string &place, std::ostream &out)
+void PhonebookUI::moveByPlace(const std::string &markName, const std::string &place, std::ostream &out)
 {
   auto it = marks_.find(markName);
   if (it == marks_.end())
   {
-    out << "<INVALID BOOKMARK>\n";
+    printInvalidBookmark(out);
   }
   else if (book_.isEmpty())
   {
-    out << "<EMPTY>\n";
+    printEmpty(out);
   }
 
   if (place == "first")
