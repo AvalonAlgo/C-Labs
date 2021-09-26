@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <iterator>
+
 #include "phonebook-interface.hpp"
 
 PhonebookUI::PhonebookUI() :
@@ -18,7 +21,7 @@ void PhonebookUI::add(const Phonebook::contact_t& contact, std::ostream&)
 {
   if (book_.isEmpty())
   {
-    book_.add(contact);
+    book_.push(contact);
     for (auto iterator = marks_.begin(); iterator != marks_.end(); ++iterator)
     {
       iterator->second = book_.begin();
@@ -26,7 +29,7 @@ void PhonebookUI::add(const Phonebook::contact_t& contact, std::ostream&)
   }
   else
   {
-    book_.add(contact);
+    book_.push(contact);
   }
 }
 
@@ -51,7 +54,7 @@ void PhonebookUI::insert(const std::string& markName, const std::string& order,
 {
   if (book_.isEmpty())
   {
-    book_.add(contact);
+    add(contact, out);
     return;
   }
 
@@ -87,11 +90,12 @@ void PhonebookUI::deleteContact(const std::string& markName, std::ostream& out)
   }
   auto temp = marks_[markName];
   auto iter = marks_.begin();
+  auto prev = std::prev(book_.end());
   while (iter != marks_.end())
   {
     if (iter->second == temp)
     {
-      if ((it->second != book_.begin()) && (iter->second == std::prev(book_.end())))
+      if ((it->second != book_.begin()) && (iter->second == prev))
       {
         iter->second--;
       }
@@ -135,11 +139,11 @@ void PhonebookUI::moveBySteps(const std::string& markName, int steps, std::ostre
     return;
   }
 
-  if ((steps > 0) && (steps > std::distance(it->second, book_.end()) - 1))
+  if (steps > 0 && steps > std::distance(it->second, book_.end()) - 1)
   {
     it->second = std::prev(book_.end());
   }
-  else if ((steps < 0) && ((-steps) > std::distance(book_.begin(), it->second)))
+  else if (steps < 0 && (-steps) > std::distance(book_.begin(), it->second))
   {
     it->second = book_.begin();
   }

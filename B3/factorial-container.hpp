@@ -7,28 +7,29 @@ class FactorialContainer
 {
 public:
     FactorialContainer(size_t n);
-    class iterator_t;
-    iterator_t begin();
-    iterator_t end();
+    class const_iterator;
+    const_iterator begin();
+    const_iterator end();
 private:
     size_t max_;
+    size_t maxFactorial_;
 };
 
-class FactorialContainer::iterator_t : public std::iterator<std::bidirectional_iterator_tag, size_t>
+class FactorialContainer::const_iterator : public std::iterator<std::bidirectional_iterator_tag, size_t>
 {
 public:
-    iterator_t(size_t index);
+    const_iterator(size_t index);
 
-    const size_t &operator*() const noexcept;
-    const size_t *operator->() const noexcept;
+    size_t operator*() const noexcept;
+    const size_t *operator->() noexcept;
 
-    iterator_t &operator++() noexcept;
-    const iterator_t operator++(int) noexcept;
-    iterator_t &operator--() noexcept;
-    const iterator_t operator--(int) noexcept;
+    const_iterator &operator++() noexcept;
+    const const_iterator operator++(int) noexcept;
+    const_iterator &operator--() noexcept;
+    const const_iterator operator--(int) noexcept;
 
-    bool operator==(const iterator_t &rhs) const noexcept;
-    bool operator!=(const iterator_t &rhs) const noexcept;
+    bool operator==(const const_iterator &rhs) const noexcept;
+    bool operator!=(const const_iterator &rhs) const noexcept;
 
 private:
     size_t index_;

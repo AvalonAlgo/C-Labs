@@ -48,7 +48,7 @@ Command parseAdd(std::istringstream &in)
   in >> std::ws;
   std::getline(in, name);
 
-  if (name.empty() || number.empty() || !(checkNumber(number) && checkName(name)))
+  if (!(checkNumber(number) && checkName(name)))
   {
     return printInvalidCommand;
   }
@@ -76,16 +76,20 @@ Command parseStore(std::istringstream& in)
 Command parseInsert(std::istringstream& in)
 {
   std::string order, markName, number, name;
-  in >> order >> markName >> number >> name;
+  in >> order >> markName >> number;
+  in >> std::ws;
+  std::getline(in, name);
 
-  if (!(checkNumber(number) && checkName(name)) || ((order != "before" && order != "after")) ||
-      order.empty() || markName.empty() || number.empty() || name.empty())
+  if (!(checkNumber(number) && checkName(name))
+    || order.empty()
+    || markName.empty()
+    || ((order != "before" && order != "after")))
   {
     return printInvalidCommand;
   }
   else
   {
-    return std::bind(&PhonebookUI::insert, std::placeholders::_2, order, markName,
+    return std::bind(&PhonebookUI::insert, std::placeholders::_2, markName, order,
                      Phonebook::contact_t{name, number}, std::placeholders::_1);
   }
 }
@@ -172,16 +176,27 @@ bool checkName(std::string &name)
   return false;
 }
 
-bool checkNumber(std::string &number)
+bool checkNumber(std::string& number)
 {
+  if (number.empty())
+  {
+    return false;
+  }
+
   auto it = number.begin();
+  if ((*it != '+') && (*it != '-') && !(std::isdigit(*it)))
+  {
+    return false;
+  }
+  it++;
+
   while (it != number.end())
   {
     if (!std::isdigit(*it))
     {
       return false;
     }
-    ++it;
+    it++;
   }
 
   return true;

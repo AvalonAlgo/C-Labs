@@ -3,75 +3,85 @@
 #include "factorial-container.hpp"
 
 FactorialContainer::FactorialContainer(size_t n) :
-  max_(n)
+  max_(n),
+  maxFactorial_(1)
 {
+  for (size_t i = 1; i <= n; i++)
+  {
+    if (maxFactorial_ > SIZE_MAX / i)
+    {
+      throw std::overflow_error("Current value exceeds size_t limit");
+    }
+
+    maxFactorial_ *= i;
+  }
 }
 
-FactorialContainer::iterator_t FactorialContainer::begin()
+FactorialContainer::const_iterator FactorialContainer::begin()
 {
-  return iterator_t(1);
+  return const_iterator(1);
 }
 
-FactorialContainer::iterator_t FactorialContainer::end()
+FactorialContainer::const_iterator FactorialContainer::end()
 {
-  return iterator_t(max_ + 1);
+  return const_iterator(max_ + 1);
 }
 
-FactorialContainer::iterator_t::iterator_t(size_t index) :
+FactorialContainer::const_iterator::const_iterator(size_t index) :
   index_(index),
   value_(factorial(index))
 {
 }
 
-const size_t &FactorialContainer::iterator_t::operator*() const noexcept
+size_t FactorialContainer::const_iterator::operator*() const noexcept
 {
   return value_;
 }
 
-const size_t *FactorialContainer::iterator_t::operator->() const noexcept
+const size_t *FactorialContainer::const_iterator::operator->() noexcept
 {
   return &value_;
 }
 
-FactorialContainer::iterator_t &FactorialContainer::iterator_t::operator++() noexcept
+FactorialContainer::const_iterator &FactorialContainer::const_iterator::operator++() noexcept
 {
   ++index_;
   value_ *= index_;
   return *this;
 }
 
-const FactorialContainer::iterator_t FactorialContainer::iterator_t::operator++(int) noexcept
+const FactorialContainer::const_iterator FactorialContainer::const_iterator::operator++(int) noexcept
 {
-  FactorialContainer::iterator_t oldIter = *this;
+  FactorialContainer::const_iterator oldIter = *this;
   ++(*this);
   return oldIter;
 }
 
-FactorialContainer::iterator_t &FactorialContainer::iterator_t::operator--() noexcept
+FactorialContainer::const_iterator &FactorialContainer::const_iterator::operator--() noexcept
 {
   value_ /= index_;
   --index_;
   return *this;
 }
 
-const FactorialContainer::iterator_t FactorialContainer::iterator_t::operator--(int) noexcept
+const FactorialContainer::const_iterator FactorialContainer::const_iterator::operator--(int) noexcept
 {
-  FactorialContainer::iterator_t oldIter = *this;
+  FactorialContainer::const_iterator oldIter = *this;
   --(*this);
   return oldIter;
 }
 
-bool FactorialContainer::iterator_t::operator==(const iterator_t &rhs) const noexcept
+bool FactorialContainer::const_iterator::operator==(const const_iterator &rhs) const noexcept
 {
   return (value_ == rhs.value_) && (index_ == rhs.index_);
 }
 
-bool FactorialContainer::iterator_t::operator!=(const iterator_t &rhs) const noexcept
+bool FactorialContainer::const_iterator::operator!=(const const_iterator &rhs) const noexcept
 {
   return !(*this == rhs);
 }
 
-size_t FactorialContainer::iterator_t::factorial(size_t n)
+size_t FactorialContainer::const_iterator::factorial(size_t n)
 {
   if (n == 0)
   {

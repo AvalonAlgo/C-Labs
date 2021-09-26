@@ -9,18 +9,18 @@ class Phonebook
 {
 public:
     using contact_t = std::pair<std::string, std::string>;
-    using contactIter = std::list<contact_t>::iterator;
-    using constContactIter = std::list<contact_t>::const_iterator;
+    using iterator = std::list<contact_t>::iterator;
+    using const_iterator = std::list<contact_t>::const_iterator;
 
-    contactIter begin();
-    contactIter end();
-    constContactIter cbegin() const;
-    constContactIter cend() const;
+    iterator begin();
+    iterator end();
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
-    void insertBefore(contactIter iter, const contact_t& contact);
-    void insertAfter(contactIter iter, const contact_t& contact);
-    contactIter erase(contactIter iter);
-    void add(const contact_t& contact);
+    void insertBefore(iterator iter, const contact_t& contact);
+    void insertAfter(iterator iter, const contact_t& contact);
+    iterator erase(iterator iter);
+    void push(const contact_t& contact);
     bool isEmpty() const;
 
 private:

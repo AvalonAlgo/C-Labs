@@ -21,7 +21,7 @@ public:
 
 private:
     Phonebook book_;
-    std::unordered_map<std::string, Phonebook::contactIter> marks_;
+    std::unordered_map<std::string, Phonebook::iterator> marks_;
 };
 
 #endif
