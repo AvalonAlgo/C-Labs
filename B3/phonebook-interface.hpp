@@ -9,11 +9,18 @@
 class PhonebookUI
 {
 public:
+
+    enum Position
+    {
+        BEFORE,
+        AFTER
+    };
+
     PhonebookUI();
 
     void add(const Phonebook::contact_t& contact, std::ostream&);
     void store(const std::string& markName, const std::string& newMarkName, std::ostream& out);
-    void insert(const std::string& markName, const std::string& order,const Phonebook::contact_t& contact, std::ostream& out);
+    void insert(const std::string& markName, Position,const Phonebook::contact_t& contact, std::ostream& out);
     void deleteContact(const std::string& markName, std::ostream& out);
     void show(const std::string& markName, std::ostream& out) const;
     void moveBySteps(const std::string& markName, int steps, std::ostream& out);

@@ -1,6 +1,7 @@
 #include <iostream>
+#include <stdexcept>
 
-void task(std::istream& in, std::ostream& out);
+#include "DataStruct.hpp"
 
 int main()
 {

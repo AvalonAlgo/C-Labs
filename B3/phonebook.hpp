@@ -22,6 +22,7 @@ public:
     iterator erase(iterator iter);
     void push(const contact_t& contact);
     bool isEmpty() const;
+    void showContact(iterator contactIter, std::ostream& out);
 
 private:
     std::list<contact_t> contacts_;

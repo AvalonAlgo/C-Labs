@@ -1,5 +1,6 @@
+#include <stdexcept>
+
 #include <boost/test/unit_test.hpp>
-#include <sstream>
 
 #include "factorial-container.hpp"
 
@@ -33,6 +34,11 @@ BOOST_AUTO_TEST_CASE(correct_reverse_output)
 
   std::reverse_copy(forReverseOutputTest.begin(), forReverseOutputTest.end(), std::ostream_iterator<size_t>(out, " "));
   BOOST_CHECK(correctReverseOutput == out.str());
+}
+
+BOOST_AUTO_TEST_CASE(container_overflow)
+{
+  BOOST_CHECK_THROW(FactorialContainer fact(564), std::overflow_error);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

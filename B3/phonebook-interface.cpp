@@ -49,7 +49,7 @@ void PhonebookUI::store(const std::string& markName, const std::string& newMarkN
   marks_[newMarkName] = it->second;
 }
 
-void PhonebookUI::insert(const std::string& markName, const std::string& order,
+void PhonebookUI::insert(const std::string& markName, Position pos,
     const Phonebook::contact_t& contact, std::ostream& out)
 {
   if (book_.isEmpty())
@@ -65,11 +65,11 @@ void PhonebookUI::insert(const std::string& markName, const std::string& order,
     return;
   }
 
-  if (order == "before")
+  if (pos == BEFORE)
   {
     book_.insertBefore(it->second, contact);
   }
-  else if (order == "after")
+  else if (pos == AFTER)
   {
     book_.insertAfter(it->second, contact);
   }
@@ -77,8 +77,8 @@ void PhonebookUI::insert(const std::string& markName, const std::string& order,
 
 void PhonebookUI::deleteContact(const std::string& markName, std::ostream& out)
 {
-  auto it = marks_.find(markName);
-  if (it == marks_.end())
+  auto iteratorOfCurrentMark = marks_.find(markName);
+  if (iteratorOfCurrentMark == marks_.end())
   {
     printInvalidBookmark(out);
     return;
@@ -88,25 +88,29 @@ void PhonebookUI::deleteContact(const std::string& markName, std::ostream& out)
     printEmpty(out);
     return;
   }
-  auto temp = marks_[markName];
-  auto iter = marks_.begin();
-  auto prev = std::prev(book_.end());
-  while (iter != marks_.end())
+  auto deletedMark = iteratorOfCurrentMark->second;
+
+  auto iteratorOfFirstBookmark = marks_.begin();
+  auto iteratorOfLastContact = std::prev(book_.end());
+  auto iteratorOfFirstContact = book_.begin();
+
+  while (iteratorOfFirstBookmark != marks_.end())
   {
-    if (iter->second == temp)
+    if (iteratorOfFirstBookmark->second == deletedMark)
     {
-      if ((it->second != book_.begin()) && (iter->second == prev))
+      if ((deletedMark != iteratorOfFirstContact)
+        && (iteratorOfFirstBookmark->second == iteratorOfLastContact))
       {
-        iter->second--;
+        iteratorOfFirstBookmark->second--;
       }
       else
       {
-        iter->second++;
+        iteratorOfFirstBookmark->second++;
       }
     }
-    ++iter;
+    ++iteratorOfFirstBookmark;
   }
-  book_.erase(temp);
+  book_.erase(deletedMark);
 }
 
 void PhonebookUI::show(const std::string& markName, std::ostream& out) const
@@ -139,16 +143,18 @@ void PhonebookUI::moveBySteps(const std::string& markName, int steps, std::ostre
     return;
   }
 
-  if (steps > 0 && steps > std::distance(it->second, book_.end()) - 1)
+  if ((steps > 0) && (steps > std::distance(it->second, book_.end()) - 1))
   {
     it->second = std::prev(book_.end());
   }
-  else if (steps < 0 && (-steps) > std::distance(book_.begin(), it->second))
+  else if ((steps < 0) && ((-steps) > std::distance(book_.begin(), it->second)))
   {
     it->second = book_.begin();
   }
-
-  std::advance(it->second, steps);
+  else
+  {
+    std::advance(it->second, steps);
+  }
 }
 
 void PhonebookUI::moveByPlace(const std::string &markName, const std::string &place, std::ostream &out)

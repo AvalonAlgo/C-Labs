@@ -23,7 +23,12 @@ Command parseDelete(std::istringstream& in);
 Command parseShow(std::istringstream& in);
 Command parseMove(std::istringstream& in);
 
-bool checkName(std::string &name);
-bool checkNumber(std::string &number);
+Phonebook::contact_t parseContact(std::istream& in);
+std::istream& operator>>(std::istream& in, Phonebook::contact_t& contact);
+
+bool readName(std::string &name, std::istringstream& in);
+bool readMarkName(std::string &markName, std::istringstream& in);
+bool readNumber(std::string &number, std::istringstream& in);
+bool readStep(std::string &name, std::istringstream& in);
 
 #endif

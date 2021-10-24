@@ -1,178 +1,69 @@
-#include <boost/test/unit_test.hpp>
 #include <sstream>
 
-#include "phonebook-interface.hpp"
+#include <boost/test/unit_test.hpp>
 
-BOOST_AUTO_TEST_SUITE(phonebook_user_interface)
+#include "phonebook.hpp"
+
+BOOST_AUTO_TEST_SUITE(phonebook)
 
 struct Fixture
 {
-  PhonebookUI UI;
+  Phonebook book;
 
   std::ostringstream output;
   std::ostringstream expectedOutput;
 };
 
-BOOST_FIXTURE_TEST_CASE(correct_add_interface, Fixture)
+BOOST_FIXTURE_TEST_CASE(correct_insert_before, Fixture)
+{
+  expectedOutput << "456789797 Gandalf\n";
+  book.push({"Mithrandir", "994865415348"});
+  book.push({"Gandalf", "456789797"});
+  book.insertBefore(book.end(), {"Olorin", "74512317"});
+  book.showContact(std::next(book.begin()), output);
+
+  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
+}
+
+BOOST_FIXTURE_TEST_CASE(correct_insert_after, Fixture)
+{
+  expectedOutput << "74512317 Olorin\n";
+  book.push({"Mithrandir", "994865415348"});
+  book.push({"Gandalf", "456789797"});
+  book.insertAfter(book.begin(), {"Olorin", "74512317"});
+  book.showContact(std::next(book.begin()), output);
+
+  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
+}
+
+BOOST_FIXTURE_TEST_CASE(correct_work_erase, Fixture)
+{
+  expectedOutput << "994865415348 Mithrandir\n";
+  book.push({"Mithrandir", "994865415348"});
+  book.erase(book.begin());
+
+  BOOST_CHECK_EQUAL(book.isEmpty(), true);
+}
+
+BOOST_FIXTURE_TEST_CASE(correct_work_push, Fixture)
 {
   expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.show("current", output);
+  book.push({"deniz", "5426507574"});
+  book.showContact(book.begin(), output);
 
   BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
 }
 
-BOOST_FIXTURE_TEST_CASE(correct_store_interface, Fixture)
+BOOST_FIXTURE_TEST_CASE(correct_work_is_empty, Fixture)
+{
+  BOOST_CHECK_EQUAL(book.isEmpty(), true);
+}
+
+BOOST_FIXTURE_TEST_CASE(correct_work_show_contact, Fixture)
 {
   expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"onur", "947682513"}, output);
-  UI.add({"deniz", "5426507574"}, output);
-  UI.moveBySteps("current", 1, output);
-  UI.store("current", "test", output);
-  UI.show("test", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_insert_before_interface, Fixture)
-{
-  expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"onur", "947682513"}, output);
-  UI.insert("current", "before", {"deniz", "5426507574"}, output);
-  UI.moveBySteps("current", -1, output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_insert_after_interface, Fixture)
-{
-  expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"onur", "947682513"}, output);
-  UI.insert("current", "after", {"deniz", "5426507574"}, output);
-  UI.moveBySteps("current", 1, output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_delete_contact_interface, Fixture)
-{
-  expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"onur", "947682513"}, output);
-  UI.add({"deniz", "5426507574"}, output);
-  UI.deleteContact("current", output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_show_interface_interface, Fixture)
-{
-  expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.add({"onur", "947682513"}, output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(show_bookmark_error_interface, Fixture)
-{
-  expectedOutput << "<INVALID BOOKMARK>\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.show("test", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(show_empty_error_interface, Fixture)
-{
-  expectedOutput << "<EMPTY>\n";
-
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_move_positive_step_interface, Fixture)
-{
-  expectedOutput << "947682513 onur\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.add({"onur", "947682513"}, output);
-  UI.moveBySteps("current", 1, output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_move_negative_step_interface, Fixture)
-{
-  expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.add({"onur", "947682513"}, output);
-  UI.moveBySteps("current", 1, output);
-  UI.moveBySteps("current", -1, output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(move_step_empty_error_interface, Fixture)
-{
-  expectedOutput << "<EMPTY>\n";
-
-  UI.moveBySteps("current", 1, output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(move_step_bookmark_error_interface, Fixture)
-{
-  expectedOutput << "<INVALID BOOKMARK>\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.moveBySteps("test", 0, output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_move_position_last_interface, Fixture)
-{
-  expectedOutput << "9618318645 gandalf\n";
-
-  UI.add({"deniz", "5426507574"}, output);
-  UI.add({"onur", "947682513"}, output);
-  UI.add({"olorin", "2316183517"}, output);
-  UI.add({"mithrandir", "1368186877"}, output);
-  UI.add({"gandalf", "9618318645"}, output);
-  UI.moveByPlace("current", "last", output);
-  UI.show("current", output);
-
-  BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
-}
-
-BOOST_FIXTURE_TEST_CASE(correct_move_position_first_interface, Fixture)
-{
-  expectedOutput << "5426507574 deniz\n";
-
-  UI.add({"deniz", "5426507574"} ,output);
-  UI.add({"onur", "947682513"} ,output);
-  UI.add({"olorin", "2316183517"} ,output);
-  UI.add({"mithrandir", "1368186877"} ,output);
-  UI.add({"gandalf", "9618318645"} ,output);
-  UI.moveBySteps("current", 4, output);
-  UI.moveByPlace("current", "first", output);
-  UI.show("current", output);
+  book.push({"deniz", "5426507574"});
+  book.showContact(book.begin(), output);
 
   BOOST_CHECK_EQUAL(expectedOutput.str(), output.str());
 }

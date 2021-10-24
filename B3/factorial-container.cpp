@@ -1,6 +1,6 @@
-#include <iostream>
-
 #include "factorial-container.hpp"
+
+#include <stdexcept>
 
 FactorialContainer::FactorialContainer(size_t n) :
   max_(n),
@@ -8,7 +8,7 @@ FactorialContainer::FactorialContainer(size_t n) :
 {
   for (size_t i = 1; i <= n; i++)
   {
-    if (maxFactorial_ > SIZE_MAX / i)
+    if (maxFactorial_ > (SIZE_MAX / i))
     {
       throw std::overflow_error("Current value exceeds size_t limit");
     }
@@ -17,19 +17,29 @@ FactorialContainer::FactorialContainer(size_t n) :
   }
 }
 
-FactorialContainer::const_iterator FactorialContainer::begin()
+FactorialContainer::const_iterator FactorialContainer::begin() const
 {
-  return const_iterator(1);
+  return const_iterator(1, 1);
 }
 
-FactorialContainer::const_iterator FactorialContainer::end()
+FactorialContainer::const_iterator FactorialContainer::end() const
 {
-  return const_iterator(max_ + 1);
+  return const_iterator(max_ + 1, maxFactorial_ * (max_ + 1));
 }
 
-FactorialContainer::const_iterator::const_iterator(size_t index) :
+FactorialContainer::const_reverse_iterator FactorialContainer::rbegin() const
+{
+  return std::make_reverse_iterator(end());
+}
+
+FactorialContainer::const_reverse_iterator FactorialContainer::rend() const
+{
+  return std::make_reverse_iterator(begin());
+}
+
+FactorialContainer::const_iterator::const_iterator(size_t index, size_t value) :
   index_(index),
-  value_(factorial(index))
+  value_(value)
 {
 }
 
@@ -38,9 +48,9 @@ size_t FactorialContainer::const_iterator::operator*() const noexcept
   return value_;
 }
 
-const size_t *FactorialContainer::const_iterator::operator->() noexcept
+size_t FactorialContainer::const_iterator::operator->() noexcept
 {
-  return &value_;
+  return value_;
 }
 
 FactorialContainer::const_iterator &FactorialContainer::const_iterator::operator++() noexcept
@@ -79,18 +89,4 @@ bool FactorialContainer::const_iterator::operator==(const const_iterator &rhs) c
 bool FactorialContainer::const_iterator::operator!=(const const_iterator &rhs) const noexcept
 {
   return !(*this == rhs);
-}
-
-size_t FactorialContainer::const_iterator::factorial(size_t n)
-{
-  if (n == 0)
-  {
-    return 1;
-  }
-  size_t result = 1;
-  for (size_t i = 2; i != n + 1; ++i)
-  {
-    result *= i;
-  }
-  return result;
 }

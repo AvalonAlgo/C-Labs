@@ -1,6 +1,6 @@
-#include "parser.hpp"
-
 #include <functional>
+
+#include "parser.hpp"
 
 void printInvalidCommand(std::ostream &out, const PhonebookUI&)
 {
@@ -15,14 +15,14 @@ void printInvalidStep(std::ostream &out, const PhonebookUI&)
 Command getCommand(const std::string& command_type, std::istringstream& stringToParse, PhonebookUI&)
 {
   const std::unordered_map<std::string, std::function<Command(std::istringstream&)>> Commands =
-          {
-                  {"add", parseAdd},
-                  {"store", parseStore},
-                  {"insert", parseInsert},
-                  {"delete", parseDelete},
-                  {"show", parseShow},
-                  {"move", parseMove}
-          };
+  {
+    {"add", parseAdd},
+    {"store", parseStore},
+    {"insert", parseInsert},
+    {"delete", parseDelete},
+    {"show", parseShow},
+    {"move", parseMove}
+  };
 
   auto it = Commands.find(command_type);
   if (it == Commands.end())
@@ -44,11 +44,8 @@ Command parse(const std::string &stringToParse, PhonebookUI& phonebook)
 Command parseAdd(std::istringstream &in)
 {
   std::string number, name;
-  in >> number;
-  in >> std::ws;
-  std::getline(in, name);
 
-  if (!(checkNumber(number) && checkName(name)))
+  if (!(readNumber(number, in) && readName(name, in)))
   {
     return printInvalidCommand;
   }
@@ -61,9 +58,8 @@ Command parseAdd(std::istringstream &in)
 Command parseStore(std::istringstream& in)
 {
   std::string markName, newMarkName;
-  in >> markName >> newMarkName;
 
-  if (markName.empty() || newMarkName.empty())
+  if (!(readMarkName(markName, in) && readMarkName(newMarkName, in)))
   {
     return printInvalidCommand;
   }
@@ -75,31 +71,34 @@ Command parseStore(std::istringstream& in)
 
 Command parseInsert(std::istringstream& in)
 {
-  std::string order, markName, number, name;
-  in >> order >> markName >> number;
-  in >> std::ws;
-  std::getline(in, name);
+  std::string pos, markName, number, name;
+  in >> pos;
 
-  if (!(checkNumber(number) && checkName(name))
-    || order.empty()
-    || markName.empty()
-    || ((order != "before" && order != "after")))
+  bool isMarkName = readMarkName(markName, in);
+  bool isNumber = readNumber(number, in);
+  bool isName = readName(name, in);
+
+  if (!(isNumber && isName && isMarkName) || (pos.empty()) || ((pos != "before") && (pos != "after")))
   {
     return printInvalidCommand;
   }
+  else if (pos == "before")
+  {
+    return std::bind(&PhonebookUI::insert, std::placeholders::_2, markName, PhonebookUI::BEFORE,
+      Phonebook::contact_t{name, number}, std::placeholders::_1);
+  }
   else
   {
-    return std::bind(&PhonebookUI::insert, std::placeholders::_2, markName, order,
-                     Phonebook::contact_t{name, number}, std::placeholders::_1);
+    return std::bind(&PhonebookUI::insert, std::placeholders::_2, markName, PhonebookUI::AFTER,
+      Phonebook::contact_t{name, number}, std::placeholders::_1);
   }
 }
 
 Command parseDelete(std::istringstream& in)
 {
   std::string markName;
-  in >> markName;
 
-  if (markName.empty())
+  if (!readMarkName(markName, in))
   {
     return printInvalidCommand;
   }
@@ -112,9 +111,8 @@ Command parseDelete(std::istringstream& in)
 Command parseShow(std::istringstream& in)
 {
   std::string markName;
-  in >> markName;
 
-  if (markName.empty())
+  if (!readMarkName(markName, in))
   {
     return printInvalidCommand;
   }
@@ -127,77 +125,172 @@ Command parseShow(std::istringstream& in)
 Command parseMove(std::istringstream& in)
 {
   std::string markName, steps;
-  in >> markName >> steps;
 
-  if (checkNumber(steps))
+  bool isMarkName = readMarkName(markName, in);
+  bool isStep = readStep(steps, in);
+
+  bool stepIsNumeric;
+  for (auto it = steps.begin(); it != steps.end(); it++)
   {
-    return std::bind(&PhonebookUI::moveBySteps, std::placeholders::_2, markName, std::stoi(steps), std::placeholders::_1);
+    if ((*it == '+') || (*it == '-'))
+    {
+      continue;
+    }
+    else if (!std::isdigit(*it))
+    {
+      stepIsNumeric = false;
+    }
+    else
+    {
+      stepIsNumeric = true;
+    }
   }
-  else if ((steps == "first") || (steps == "last"))
+
+  if (!isMarkName)
   {
-    return std::bind(&PhonebookUI::moveByPlace, std::placeholders::_2, markName, steps, std::placeholders::_1);
+    return printInvalidCommand;
   }
-  else
+  else if (!isStep)
   {
     return printInvalidStep;
   }
+
+  if (isMarkName && (isStep))
+  {
+    if (stepIsNumeric)
+    {
+      return std::bind(&PhonebookUI::moveBySteps, std::placeholders::_2, markName, std::stoi(steps), std::placeholders::_1);
+    }
+    else
+    {
+      return std::bind(&PhonebookUI::moveByPlace, std::placeholders::_2, markName, steps, std::placeholders::_1);
+    }
+  }
+
+  return printInvalidCommand;
 }
 
-bool checkName(std::string &name)
+bool readMarkName(std::string &markName, std::istringstream& in)
 {
-  if (name.empty())
+  char c = ' ';
+  in >> std::ws >> c;
+  if ((c == ' ') || !((c == '-') || std::isalpha(c) || std::isdigit(c)))
   {
     return false;
   }
-
-  if ((*name.begin() == '\"') && (*std::prev(name.end()) == '\"'))
+  markName.push_back(c);
+  while (in.get(c))
   {
-    name.erase(name.begin());
-    name.erase(std::prev(name.end()));
-
-    for (auto i = name.begin(); i != name.end(); ++i)
+    if (c == ' ')
     {
-      if (*i == '\\')
-      {
-        if (*std::next(i) == '\"')
-        {
-          name.erase(i);
-        }
-        else
-        {
-          return false;
-        }
-      }
+      break;
+    }
+    else if (!((c == '-') || std::isalpha(c) || std::isdigit(c)))
+    {
+      return false;
     }
 
+    markName.push_back(c);
+  }
+
+  return true;
+}
+
+bool readStep(std::string &step, std::istringstream& in)
+{
+  char c = ' ';
+  in >> std::ws >> c;
+  if ((c == '-') || (c == '+') || std::isdigit(c))
+  {
+    step.push_back(c);
+    while (in.get(c))
+    {
+      if (c == ' ')
+      {
+        break;
+      }
+      else if (!(std::isdigit(c)))
+      {
+        return false;
+      }
+
+      step.push_back(c);
+    }
+
+    return true;
+  }
+  step.push_back(c);
+  while (in.get(c))
+  {
+    if (c == ' ')
+    {
+      break;
+    }
+
+    step.push_back(c);
+  }
+
+  if ((step == "first") || (step == "last"))
+  {
     return true;
   }
 
   return false;
 }
 
-bool checkNumber(std::string& number)
+bool readNumber(std::string &number, std::istringstream& in)
 {
-  if (number.empty())
+  char c = ' ';
+  in >> std::ws >> c;
+  if ((c == '-') || (c == '+'))
+  {
+    number.push_back(c);
+  }
+  else if (!(std::isdigit(c)))
   {
     return false;
   }
-
-  auto it = number.begin();
-  if ((*it != '+') && (*it != '-') && !(std::isdigit(*it)))
+  number.push_back(c);
+  while (in.get(c))
   {
-    return false;
-  }
-  it++;
-
-  while (it != number.end())
-  {
-    if (!std::isdigit(*it))
+    if (c == ' ')
+    {
+      break;
+    }
+    else if (!(std::isdigit(c)))
     {
       return false;
     }
-    it++;
+
+    number.push_back(c);
   }
 
   return true;
+}
+
+bool readName(std::string &name, std::istringstream& in)
+{
+  char c = ' ';
+  in >> std::ws >> c;
+  if (c != '"')
+  {
+    return false;
+  }
+  while (in.get(c))
+  {
+    if ((c == '"') || (c == '\'') || (c == '\\'))
+    {
+      if ((!name.empty() && (name.back() == '\\')))
+      {
+        name.pop_back();
+      }
+      else if (c == '"')
+      {
+        return true;
+      }
+    }
+    name.push_back(c);
+  }
+
+  return false;
 }

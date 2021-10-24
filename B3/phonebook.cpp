@@ -52,3 +52,8 @@ bool Phonebook::isEmpty() const
 {
   return contacts_.empty();
 }
+
+void Phonebook::showContact(Phonebook::iterator contactIter, std::ostream &out)
+{
+  out << contactIter->second << " " << contactIter->first << '\n';
+}

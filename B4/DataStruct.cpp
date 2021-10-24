@@ -1,11 +1,40 @@
-#include <iostream>
+#include <ostream>
 #include <vector>
 #include <sstream>
 #include <algorithm>
 
-#include "task.hpp"
+#include "DataStruct.hpp"
 
-int parseKey(const std::string &str)
+void task(std::istream& in, std::ostream& out)
+{
+  std::vector<DataStruct> array;
+
+  std::string inputLine;
+  while (std::getline(in, inputLine))
+  {
+    std::stringstream input(inputLine);
+    std::string forKey1, forKey2, forStr;
+
+    std::getline(input >> std::ws, forKey1, ',');
+    int key1 = getKey(forKey1);
+
+    std::getline(input >> std::ws, forKey2, ',');
+    int key2 = getKey(forKey2);
+
+    std::getline(input >> std::ws, forStr, '\n');
+    if (forStr.empty())
+    {
+      throw std::invalid_argument("Invalid input, missing string\n");
+    }
+
+    array.push_back({key1, key2, forStr});
+  }
+
+  std::sort(array.begin(), array.end(), dataStructCompare);
+  print(array, out);
+}
+
+int getKey(const std::string &str)
 {
   if (str.empty())
   {
@@ -50,36 +79,4 @@ bool dataStructCompare(const DataStruct &lhs, const DataStruct &rhs)
   {
     return (lhs.str.size() < rhs.str.size());
   }
-}
-
-void task(std::istream& in, std::ostream& out)
-{
-  std::vector<DataStruct> array;
-
-  std::string inputLine;
-  while (std::getline(in, inputLine))
-  {
-    std::stringstream input(inputLine);
-    std::string temp;
-
-    std::getline(input >> std::ws, temp, ',');
-    int key1 = parseKey(temp);
-    temp.clear();
-
-    std::getline(input >> std::ws, temp, ',');
-    int key2 = parseKey(temp);
-    temp.clear();
-
-    std::getline(input >> std::ws, temp, '\n');
-
-    if (temp.empty())
-    {
-      throw std::invalid_argument("Invalid input, missing string\n");
-    }
-
-    array.push_back({key1, key2, temp});
-  }
-
-  std::sort(array.begin(), array.end(), dataStructCompare);
-  print(array, out);
 }

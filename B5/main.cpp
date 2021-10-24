@@ -1,7 +1,7 @@
 #include <iostream>
 
-void task1();
-void task2();
+void taskOne(std::istream& in, std::ostream& out);
+void taskTwo(std::istream& in, std::ostream& out);
 
 int main(int argc, char *argv[])
 {
@@ -15,14 +15,14 @@ int main(int argc, char *argv[])
     const int taskNumber = std::atoi(argv[1]);
     switch (taskNumber)
     {
-      case 1:
-        task1();
-        break;
-      case 2:
-        task2();
-        break;
-      default:
-        throw std::invalid_argument("Invalid task number");
+    case 1:
+      taskOne(std::cin, std::cout);
+      break;
+    case 2:
+      taskTwo(std::cin, std::cout);
+      break;
+    default:
+      throw std::invalid_argument("Invalid task number");
     }
 
     return 0;
