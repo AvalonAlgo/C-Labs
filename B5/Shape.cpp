@@ -1,8 +1,9 @@
 #include <iostream>
+#include <iterator>
 
 #include "Shape.hpp"
 
-bool operator==(const Point &lhs, const Point &rhs) //
+bool operator==(const Point &lhs, const Point &rhs)
 {
   if ((lhs.x == rhs.x) && (lhs.y == rhs.y))
   {
@@ -12,82 +13,94 @@ bool operator==(const Point &lhs, const Point &rhs) //
   return false;
 }
 
-void readShape(Shape &shape, std::stringstream &input)  //
+std::istream& operator>>(std::istream& stream, Point& point)
 {
-  size_t count_points;
-  Point tempPoint{0, 0};
-  char tempCharacter;
-
-  if (!(input >> std::ws >> count_points))
+  int x = 0, y = 0;
+  std::istream::sentry sen(stream);
+  if (!sen)
   {
-    throw std::invalid_argument("Point count not specified");
+    return stream;
   }
-  while ((input >> std::ws >> tempCharacter))
+  stream >> std::ws;
+  if (stream.get() != '(')
   {
-    if (tempCharacter != '(')
-    {
-      throw std::invalid_argument("Invalid input (expected \"(\" )");
-    }
-
-    input >> std::ws >> tempPoint.x;
-    input >> std::ws >> tempCharacter;
-    if (tempCharacter != ';')
-    {
-      throw std::invalid_argument("Invalid input (expected \";\" )");
-    }
-
-    input >> std::ws >> tempPoint.y;
-    input >> std::ws >> tempCharacter;
-    if (tempCharacter != ')')
-    {
-      throw std::invalid_argument("Invalid input (expected \")\" )");
-    }
-
-    shape.push_back({tempPoint.x, tempPoint.y});
+    stream.setstate(std::ios_base::failbit);
+    return stream;
   }
-
-  if (count_points != shape.size())
+  if (!(stream >> std::ws >> x))
   {
-    throw std::invalid_argument("Invalid number of points provided");
+    return stream;
   }
+  if ((stream >> std::ws).get() != ';')
+  {
+    stream.setstate(std::ios_base::failbit);
+    return stream;
+  }
+  if (!(stream >> std::ws >> y))
+  {
+    return stream;
+  }
+  if ((stream >> std::ws).get() != ')')
+  {
+    stream.setstate(std::ios_base::failbit);
+    return stream;
+  }
+  point.x = x;
+  point.y = y;
+
+  return stream;
 }
 
-void printShape(const Shape &shape, std::ostream& out)  //
+std::ostream& operator<<(std::ostream& stream, const Point& point)
 {
-  out << shape.size() << " ";
-  for (auto point : shape)
+  std::ostream::sentry sen(stream);
+  if (!sen)
   {
-    out << "(" << point.x << ";" << point.y << ")" << " ";
+    return stream;
   }
-  out << "\n";
+  stream << '(' << point.x << ';' << point.y << ')';
+
+  return stream;
 }
 
-bool compareShape(const Shape &lhs, const Shape &rhs)
+std::istream& operator>>(std::istream& stream, Shape& shape)
 {
-  if (lhs.size() < rhs.size())
+  std::istream::sentry sen(stream);
+  if (!sen)
   {
-    return true;
+    return stream;
   }
-
-  if ((lhs.size() == 4) && (rhs.size() == 4))
+  size_t vertices;
+  stream >> std::noskipws >> std::ws >> vertices;
+  if (!stream)
   {
-    if (isSquare(lhs))
+    return stream;
+  }
+  Shape temp(vertices);
+  for (size_t i = 0; i < vertices; ++i)
+  {
+    if (!(stream >> temp[i]))
     {
-      if (isSquare(rhs))
-      {
-        return false;
-      }
-      else
-      {
-        return true;
-      }
+      return stream;
     }
   }
-
-  return false;
+  shape = std::move(temp);
+  return stream;
 }
 
-bool isTriangle(const Shape& shape) //
+std::ostream& operator<<(std::ostream& stream, const Shape& shape)
+{
+  std::ostream::sentry sen(stream);
+  if (!sen)
+  {
+    return stream;
+  }
+  stream << shape.size() << ' ';
+  std::copy(shape.begin(), shape.end(), std::ostream_iterator<Point>(stream, " "));
+  return stream;
+}
+
+bool isTriangle(const Shape& shape)
 {
   if ((shape.size() != 3) ||
       (shape[0] == shape[1]) || (shape[0] == shape[2]) || (shape[1] == shape[2]))
@@ -98,25 +111,7 @@ bool isTriangle(const Shape& shape) //
   return true;
 }
 
-bool isRectangle(const Shape& shape)  //
-{
-  if ((shape.size() != 4) ||
-      (shape[0] == shape[1]) || (shape[0] == shape[2]) || (shape[0] == shape[3]) ||
-      (shape[1] == shape[2]) || (shape[1] == shape[3]) ||
-      (shape[2] == shape[3]))
-  {
-    return false;
-  }
-
-  const double sideAB =  getSquaredDistanceBetweenPoints(shape[0], shape[1]);
-  const double sideBC =  getSquaredDistanceBetweenPoints(shape[1], shape[2]);
-  const double sideCD =  getSquaredDistanceBetweenPoints(shape[2], shape[3]);
-  const double sideDA =  getSquaredDistanceBetweenPoints(shape[3], shape[0]);
-
-  return ((sideAB == sideCD) && (sideBC == sideDA));
-}
-
-bool isSquare(const Shape& shape) //
+bool isSquare(const Shape& shape)
 {
   if ((shape.size() != 4) ||
       (shape[0] == shape[1]) || (shape[0] == shape[2]) || (shape[0] == shape[3]) ||
@@ -135,7 +130,25 @@ bool isSquare(const Shape& shape) //
   return ((sideAB == sideBC) && (sideCD == sideDA));
 }
 
-bool isPentagon(const Shape& shape) //
+bool isRectangle(const Shape& shape)
+{
+  if ((shape.size() != 4) ||
+      (shape[0] == shape[1]) || (shape[0] == shape[2]) || (shape[0] == shape[3]) ||
+      (shape[1] == shape[2]) || (shape[1] == shape[3]) ||
+      (shape[2] == shape[3]))
+  {
+    return false;
+  }
+
+  const double sideAB =  getSquaredDistanceBetweenPoints(shape[0], shape[1]);
+  const double sideBC =  getSquaredDistanceBetweenPoints(shape[1], shape[2]);
+  const double sideCD =  getSquaredDistanceBetweenPoints(shape[2], shape[3]);
+  const double sideDA =  getSquaredDistanceBetweenPoints(shape[3], shape[0]);
+
+  return ((sideAB == sideCD) && (sideBC == sideDA));
+}
+
+bool isPentagon(const Shape& shape)
 {
   if ((shape.size() != 5) ||
       (shape[0] == shape[1]) || (shape[0] == shape[2]) || (shape[0] == shape[3]) || (shape[0] == shape[4]) ||
@@ -149,7 +162,16 @@ bool isPentagon(const Shape& shape) //
   return true;
 }
 
-double getSquaredDistanceBetweenPoints(const Point& pointOne, const Point& pointTwo)  //
+bool CompareShapes::operator()(const Shape& first, const Shape& second) const
+{
+  if ((first.size() == 4) && (second.size() == 4))
+  {
+    return isSquare(first) && !isSquare(second);
+  }
+  return first.size() < second.size();
+}
+
+double getSquaredDistanceBetweenPoints(const Point& pointOne, const Point& pointTwo)
 {
   const double horizontalDist =  pointOne.x - pointTwo.x;
   const double verticalDist =  pointOne.y - pointTwo.y;

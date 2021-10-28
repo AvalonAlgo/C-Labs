@@ -2,25 +2,30 @@
 #define SHAPE_HPP
 
 #include <vector>
-#include <sstream>
+#include <iostream>
 
 struct Point
 {
-    int x, y;
+  int x, y;
 
-    friend bool operator== (const Point &lhs, const Point &rhs);
+  friend bool operator==(const Point &lhs, const Point &rhs);
+  friend std::istream& operator>>(std::istream&, Point&);
+  friend std::ostream& operator<<(std::ostream&, const Point&);
 };
 
 using Shape = std::vector<Point>;
+std::istream& operator>>(std::istream&, Shape&);
+std::ostream& operator<<(std::ostream&, const Shape&);
 
-void readShape(Shape &shape, std::stringstream &input);
-void printShape(const Shape &shape, std::ostream& out);
+struct CompareShapes
+{
+  bool operator ()(const Shape&, const Shape&) const;
+};
 
-bool compareShape(const Shape &lhs, const Shape &rhs);
-bool isTriangle(const Shape& shape);
-bool isRectangle(const Shape& shape);
-bool isSquare(const Shape& shape);
-bool isPentagon(const Shape& shape);
+bool isTriangle(const Shape&);
+bool isSquare(const Shape&);
+bool isRectangle(const Shape&);
+bool isPentagon(const Shape&);
 
 double getSquaredDistanceBetweenPoints(const Point& pointOne, const Point& pointTwo);
 

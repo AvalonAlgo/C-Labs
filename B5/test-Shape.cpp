@@ -34,15 +34,6 @@ BOOST_FIXTURE_TEST_CASE(equality_sign_overload_test, Fixture)
   BOOST_CHECK_EQUAL((lhsf == rhsf), false);
 }
 
-BOOST_FIXTURE_TEST_CASE(compare_shape_test, Fixture)
-{
-  BOOST_CHECK_EQUAL(compareShape(trueTriangle, trueRectangle), true);
-  BOOST_CHECK_EQUAL(compareShape(trueRectangle, trueTriangle), false);
-
-  BOOST_CHECK_EQUAL(compareShape(trueSquare, trueRectangle), true);
-  BOOST_CHECK_EQUAL(compareShape(trueSquare, trueSquare), false);
-}
-
 BOOST_FIXTURE_TEST_CASE(is_triangle_test, Fixture)
 {
   BOOST_CHECK_EQUAL(isTriangle(falseTriangle), false);

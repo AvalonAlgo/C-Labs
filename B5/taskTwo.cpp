@@ -1,95 +1,49 @@
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
+#include <iterator>
 #include <algorithm>
+#include <vector>
 #include <list>
-#include "string"
 
 #include "Shape.hpp"
 
-const int typesOfShapes = 3;
-
 void taskTwo(std::istream& in, std::ostream& out)
 {
-  std::list<Shape> shapes;
-  size_t verticesCounters[typesOfShapes]{0, 0, 0};
-
-  // 1
-  Shape temp;
-  std::string input;
-  while (std::getline(in >> std::ws, input))
+  std::list<Shape> shapes((std::istream_iterator<Shape>(in)), std::istream_iterator<Shape>());
+  if (!in.eof())
   {
-    std::stringstream inputStream(input);
-    readShape(temp, inputStream);
-    if (!temp.empty())
-    {
-      shapes.push_back(temp);
-    }
-    temp.clear();
+    throw std::runtime_error("Error in shape input");
   }
 
-  // 2
   size_t vertices = 0;
-  for (const Shape& shape : shapes)
-  {
-    vertices += shape.size();
-  }
+  std::for_each(shapes.begin(), shapes.end(),
+                [&vertices](const Shape& shape)
+                {
+                    vertices += shape.size();
+                });
 
-  // 3
-  for (const Shape& shape : shapes)
-  {
-    if (isTriangle(shape))
-    {
-      ++verticesCounters[0];
-    }
-    else if (isRectangle(shape))
-    {
-      if (isSquare(shape))
-      {
-        ++verticesCounters[1];
-      }
-      ++verticesCounters[2];
-    }
-  }
+  const size_t triangles = std::count_if(shapes.begin(), shapes.end(), &isTriangle);
+  const size_t squares = std::count_if(shapes.begin(), shapes.end(), &isSquare);
+  const size_t rectangles = std::count_if(shapes.begin(), shapes.end(), &isRectangle);
+  shapes.erase(std::remove_if(shapes.begin(), shapes.end(), isPentagon), shapes.end());
 
-  // 4
-  for (auto shape = shapes.begin(); shape != shapes.end();)
-  {
-    if (isPentagon(*shape))
-    {
-      shape = shapes.erase(shape);
-    }
-    else
-    {
-      ++shape;
-    }
-  }
-
-  // 5
   std::vector<Point> points;
-  for (auto shape : shapes)
-  {
-    points.push_back(shape[0]);
-  }
+  points.reserve(shapes.size());
+  std::for_each(shapes.begin(), shapes.end(),
+                [&points](const Shape& shape)
+                {
+                    points.push_back(shape[0]);
+                });
+  shapes.sort(CompareShapes());
 
-  // 6
-  shapes.sort(compareShape);
+  out << "Vertices: " << vertices
+      << "\nTriangles: " << triangles
+      << "\nSquares: " << squares
+      << "\nRectangles: " << rectangles
+      << "\nPoints: ";
+  std::copy(points.begin(), points.end(), std::ostream_iterator<Point>(out, " "));
 
-  // 7
-  out << "Vertices: " << vertices << "\n"
-      << "Triangles: " << verticesCounters[0] << "\n"
-      << "Squares: " << verticesCounters[1] << "\n"
-      << "Rectangles: " << verticesCounters[2] << "\n";
-
-  out << "Points: ";
-  for (Point point : points)
-  {
-    out << "(" << point.x << ";" << point.y << ")" << " ";
-  }
-  out << "\n";
-
-  out << "Shapes:" << "\n";
-  for (const Shape& shape : shapes)
-  {
-    printShape(shape, out);
-  }
+  out << "\nShapes:\n";
+  std::copy(shapes.begin(), shapes.end(), std::ostream_iterator<Shape>(out, "\n"));
 }

@@ -3,7 +3,7 @@
 
 #include "Shape.hpp"
 
-BOOST_AUTO_TEST_SUITE(InputOutputTest)
+BOOST_AUTO_TEST_SUITE(IOTest)
 
 struct Fixture
 {
@@ -11,31 +11,33 @@ struct Fixture
   std::stringstream input;
   std::ostringstream output;
   Shape shape;
+  Point point;
 };
 
 BOOST_FIXTURE_TEST_CASE(empty_point_input, Fixture)
 {
   input.str("");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(correct_point_input, Fixture)
 {
-  expectedOutput = "1 (1;2) \n";
+  expectedOutput = "1 (1;2) ";
   input.str("1 (1;2)");
-  readShape(shape, input);
-  printShape(shape, output);
+  input >> shape;
+  output << shape;
 
   BOOST_CHECK_EQUAL(expectedOutput, output.str());
 }
 
 BOOST_FIXTURE_TEST_CASE(correct_points_input, Fixture)
 {
-  expectedOutput = "2 (1;2) (4;7) \n";
+  expectedOutput = "2 (1;2) (4;7) ";
   input.str("2 (1;2) (4;7)");
-  readShape(shape, input);
-  printShape(shape, output);
+  input >> shape;
+  output << shape;
 
   BOOST_CHECK_EQUAL(expectedOutput, output.str());
 }
@@ -43,58 +45,65 @@ BOOST_FIXTURE_TEST_CASE(correct_points_input, Fixture)
 BOOST_FIXTURE_TEST_CASE(invalid_first_coordinate, Fixture)
 {
   input.str("(INVALID;2)");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(invalid_second_coordinate, Fixture)
 {
   input.str("(2;INVALID)");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(invalid_both_coordinates, Fixture)
 {
   input.str("(INVALID;INVALID)");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(no_opening_bracket, Fixture)
 {
   input.str("1;2)");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(no_closing_bracket, Fixture)
 {
   input.str("(1;2");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(no_delimeter, Fixture)
 {
   input.str("(12)");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(invalid_delimeter, Fixture)
 {
   input.str("(1,2)");
+  input >> point;
 
-  BOOST_CHECK_THROW(readShape(shape, input), std::invalid_argument);
+  BOOST_CHECK(input.fail());
 }
 
 BOOST_FIXTURE_TEST_CASE(point_output, Fixture)
 {
-  expectedOutput = "1 (1;2) \n";
+  expectedOutput = "1 (1;2) ";
   input.str("1 (1;2)");
-  readShape(shape, input);
-  printShape(shape, output);
+  input >> shape;
+  output << shape;
 
   BOOST_CHECK_EQUAL(expectedOutput, output.str());
 }
